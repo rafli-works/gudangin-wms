@@ -19,8 +19,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
         //
     })->create();
 
-// Support for Vercel Serverless ephemeral /tmp storage
-if (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL']) || getenv('APP_STORAGE')) {
+// Ensure storage path points to writable /tmp on serverless or read-only environments
+if (is_dir('/tmp') && (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL']) || getenv('VERCEL') || getenv('APP_STORAGE') || !is_writable(dirname(__DIR__) . '/storage/framework/views'))) {
     $storagePath = getenv('APP_STORAGE') ?: '/tmp/storage';
     $app->useStoragePath($storagePath);
 }
