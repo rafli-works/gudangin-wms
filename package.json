@@ -3,7 +3,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
+        "build": "echo 'Assets already compiled'",
+        "build:vite": "vite build",
         "dev": "vite"
     },
     "devDependencies": {
