@@ -9,6 +9,8 @@ class UserData
         public readonly string $username,
         public readonly string $email,
         public readonly ?string $password = null,
+        public readonly string $role = 'basic_user',
+        public readonly string $jabatan = 'Warehouse Staff',
     ) {}
 
     public static function fromRequest(array $data): self
@@ -18,6 +20,8 @@ class UserData
             username: $data['username'],
             email: $data['email'],
             password: $data['password'] ?? null,
+            role: $data['role'] ?? 'basic_user',
+            jabatan: $data['jabatan'] ?? 'Warehouse Staff',
         );
     }
 
@@ -28,6 +32,8 @@ class UserData
             'username' => $this->username,
             'email' => $this->email,
             'password' => $this->password,
+            'role' => $this->role,
+            'jabatan' => $this->jabatan,
         ];
     }
 }

@@ -1,15 +1,18 @@
-<x-app-layout title="Purchases">
+<x-app-layout title="Riwayat Stock In">
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-foreground leading-tight">
-                {{ __('Purchases') }}
-            </h2>
+            <div>
+                <h2 class="font-bold text-xl text-foreground leading-tight">
+                    {{ __('Riwayat Stock In (Barang Masuk)') }}
+                </h2>
+                <p class="text-xs text-muted-foreground mt-0.5">Daftar pencatatan penerimaan barang fisik yang masuk ke gudang.</p>
+            </div>
             <x-primary-button
                 x-data
-                x-on:click="window.location.href = '{{ route('purchases.create') }}'"
+                x-on:click="window.location.href = '{{ route('stock-in.create') }}'"
             >
                 <x-heroicon-o-plus class="w-4 h-4 mr-2" />
-                {{ __('Create Purchase') }}
+                {{ __('+ Input Stock In') }}
             </x-primary-button>
         </div>
     </x-slot>

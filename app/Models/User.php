@@ -26,7 +26,34 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'role',
+        'jabatan',
+        'is_active',
     ];
+
+    /**
+     * Check if user is Super Admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    /**
+     * Check if user is Basic User
+     */
+    public function isBasicUser(): bool
+    {
+        return $this->role === 'basic_user';
+    }
+
+    /**
+     * Human-readable role label
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        return $this->role === 'super_admin' ? 'Super Admin' : 'Basic User';
+    }
 
     /**
      * The attributes that should be hidden for serialization.

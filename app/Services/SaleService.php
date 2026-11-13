@@ -112,16 +112,12 @@ class SaleService
 
                 $total = $totalSubtotal - $data->global_discount;
 
-                if ($data->status === SaleStatus::COMPLETED) {
-                    if ($data->payment_method === \App\Enums\PaymentMethod::CASH && $data->cash_received < $total) {
-                        throw SaleException::insufficientPayment($total, $data->cash_received);
-                    }
-                }
                 $change = 0;
+                $cashReceived = $data->cash_received > 0 ? $data->cash_received : $total;
 
-                // Calculate change if payment method is cash
-                if ($data->payment_method === \App\Enums\PaymentMethod::CASH && $data->cash_received >= $total) {
-                    $change = $data->cash_received - $total;
+                // Calculate change if cash received exceeds total
+                if ($cashReceived >= $total) {
+                    $change = $cashReceived - $total;
                 }
 
                 $sale->update([
@@ -129,12 +125,13 @@ class SaleService
                     'total_discount' => $totalDiscount + $data->global_discount,
                     'global_discount' => $data->global_discount,
                     'total' => $total,
+                    'cash_received' => $cashReceived,
                     'change' => $change,
                 ]);
 
-                if ($sale->status === SaleStatus::COMPLETED) {
-                    $this->financeService->recordIncomeFromSale($sale);
-                }
+                // Invalidate real-time caches
+                \Illuminate\Support\Facades\Cache::forget('dashboard_warehouse_metrics');
+                \Illuminate\Support\Facades\Cache::forget('dashboard_low_stock');
 
                 return $sale;
 

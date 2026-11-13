@@ -1,16 +1,16 @@
-<x-app-layout title="Sale Details">
+<x-app-layout title="Detail Stock Out">
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-foreground leading-tight">
-                {{ __('Sale Details') }} #{{ $sale->invoice_number ?: $sale->id }}
+            <h2 class="font-bold text-xl text-foreground leading-tight">
+                {{ __('Detail Stock Out') }} #{{ $sale->invoice_number ?: $sale->id }}
             </h2>
             <div class="flex items-center gap-2">
-                <x-secondary-button href="{{ route('sales.index') }}">
-                    &larr; {{ __('Back to List') }}
+                <x-secondary-button href="{{ route('stock-out.create') }}">
+                    &larr; {{ __('Kembali ke Stock Out') }}
                 </x-secondary-button>
-                <x-primary-button href="{{ route('sales.print', $sale) }}" target="_blank">
+                <x-primary-button href="{{ route('stock-out.print', $sale) }}" target="_blank">
                     <x-heroicon-o-printer class="w-4 h-4 mr-2" />
-                    {{ __('Print Invoice') }}
+                    {{ __('Cetak Surat Jalan / Bukti Keluar') }}
                 </x-primary-button>
             </div>
         </div>

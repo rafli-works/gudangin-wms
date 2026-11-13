@@ -3,43 +3,70 @@
         <!-- Custom Header -->
         <div class="mb-6 space-y-1.5 text-center sm:text-left border-b border-gray-200 pb-4">
             <h3 class="text-lg font-semibold leading-none tracking-tight text-foreground">
-                {{ $isEditing ? 'Edit User' : 'Create User' }}
+                {{ $isEditing ? 'Edit User GudangIn' : 'Tambah User GudangIn Baru' }}
             </h3>
             <p class="text-sm text-muted-foreground">
-                {{ $isEditing ? 'Update user information.' : 'Add a new user to the system.' }}
+                {{ $isEditing ? 'Perbarui informasi profil dan hak akses pengguna.' : 'Daftarkan pengguna baru untuk akses sistem pergudangan.' }}
             </p>
         </div>
 
         <form wire:submit="save" class="space-y-4">
-            <!-- Name -->
-            <x-form-input
-                name="name"
-                label="Name"
-                type="text"
-                wire:model="name"
-                required
-                placeholder="Full Name"
-            />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Name -->
+                <x-form-input
+                    name="name"
+                    label="Nama Lengkap"
+                    type="text"
+                    wire:model="name"
+                    required
+                    placeholder="Contoh: Budi Santoso"
+                />
 
-            <!-- Username -->
-            <x-form-input
-                name="username"
-                label="Username"
-                type="text"
-                wire:model="username"
-                required
-                placeholder="Unique username"
-            />
+                <!-- Username -->
+                <x-form-input
+                    name="username"
+                    label="Username"
+                    type="text"
+                    wire:model="username"
+                    required
+                    placeholder="Contoh: budi_gudang"
+                />
+            </div>
 
             <!-- Email -->
             <x-form-input
                 name="email"
-                label="Email"
+                label="Alamat Email"
                 type="email"
                 wire:model="email"
                 required
-                placeholder="email@example.com"
+                placeholder="email@gudangin.com"
             />
+
+            <!-- Role & Jabatan -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <x-input-label for="role" :value="__('Role & Privilege')" />
+                    <select id="role" wire:model="role" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                        <option value="basic_user">Basic User (Warehouse Operator)</option>
+                        <option value="super_admin">Super Admin (Full System Access)</option>
+                    </select>
+                    <x-input-error :messages="$errors->get('role')" />
+                </div>
+
+                <div class="space-y-2">
+                    <x-input-label for="jabatan" :value="__('Jabatan / Posisi')" />
+                    <x-text-input
+                        id="jabatan"
+                        name="jabatan"
+                        type="text"
+                        wire:model="jabatan"
+                        required
+                        placeholder="Contoh: Staff Inbound / Kepala Gudang"
+                    />
+                    <x-input-error :messages="$errors->get('jabatan')" />
+                </div>
+            </div>
 
             <!-- Password -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -52,13 +79,13 @@
                         wire:model="password"
                         :required="!$isEditing"
                         autocomplete="new-password"
-                        placeholder="{{ $isEditing ? 'Leave blank to keep current' : 'Min 8 chars' }}"
+                        placeholder="{{ $isEditing ? 'Kosongkan jika tidak diubah' : 'Minimal 8 karakter' }}"
                     />
                     <x-input-error :messages="$errors->get('password')" />
                 </div>
 
                 <div class="space-y-2">
-                    <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+                    <x-input-label for="password_confirmation" :value="__('Konfirmasi Password')" />
                     <x-text-input
                         id="password_confirmation"
                         name="password_confirmation"
@@ -73,7 +100,7 @@
             <!-- Actions -->
             <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
                 <x-secondary-button type="button" x-on:click="$dispatch('close-modal', { name: 'user-form-modal' })">
-                    {{ __('Cancel') }}
+                    {{ __('Batal') }}
                 </x-secondary-button>
 
                 <x-primary-button type="submit" wire:loading.attr="disabled">
@@ -82,7 +109,7 @@
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     <x-heroicon-o-check wire:loading.remove wire:target="save" class="w-4 h-4 mr-2" />
-                    {{ $isEditing ? __('Save Changes') : __('Create User') }}
+                    {{ $isEditing ? __('Simpan Perubahan') : __('Buat User') }}
                 </x-primary-button>
             </div>
         </form>

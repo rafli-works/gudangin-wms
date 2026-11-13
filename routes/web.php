@@ -1,10 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StockInController;
+use App\Http\Controllers\StockOutController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FinanceReportController;
+use App\Http\Controllers\AuditReportController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // =========================================================================
@@ -29,26 +32,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // =========================================================================
-    // Transactions
+    // WMS Operations: Stock In & Stock Out (GudangIn Central Inventory)
     // =========================================================================
 
-    // Purchases
-    Route::resource('purchases', PurchaseController::class);
-    Route::prefix('purchases/{purchase}')->name('purchases.')->controller(PurchaseController::class)->group(function () {
-        Route::patch('ordered', 'markOrdered')->name('mark-ordered');
-        Route::patch('received', 'markReceived')->name('mark-received');
-        Route::patch('paid', 'markPaid')->name('mark-paid');
-        Route::patch('cancel', 'cancel')->name('cancel');
-        Route::patch('restore-draft', 'restoreToDraft')->name('restore-draft');
-    });
+    // Stock In (Barang Masuk)
+    Route::get('stock-in', [StockInController::class, 'create'])->name('stock-in.create');
+    Route::post('stock-in', [StockInController::class, 'store'])->name('stock-in.store');
+    Route::get('stock-in/history', [StockInController::class, 'index'])->name('stock-in.index');
+    Route::get('stock-in/{purchase}', [StockInController::class, 'show'])->name('stock-in.show');
 
-    // Sales
-    Route::resource('sales', SalesController::class)->except(['edit', 'update']);
-    Route::prefix('sales/{sale}')->name('sales.')->controller(SalesController::class)->group(function () {
-        Route::get('print', 'print')->name('print');
-        Route::patch('complete', 'complete')->name('complete');
-        Route::patch('restore', 'restore')->name('restore');
-    });
+    // Stock Out (Barang Keluar)
+    Route::get('stock-out', [StockOutController::class, 'create'])->name('stock-out.create');
+    Route::post('stock-out', [StockOutController::class, 'store'])->name('stock-out.store');
+    Route::get('stock-out/history', [StockOutController::class, 'index'])->name('stock-out.index');
+    Route::get('stock-out/{sale}', [StockOutController::class, 'show'])->name('stock-out.show');
+    Route::get('stock-out/{sale}/print', [StockOutController::class, 'print'])->name('stock-out.print');
+
+    // Legacy CRM Route Redirects & Fallbacks
+    Route::redirect('purchases', '/stock-in')->name('purchases.index');
+    Route::redirect('purchases/create', '/stock-in')->name('purchases.create');
+    Route::post('purchases', [StockInController::class, 'store'])->name('purchases.store');
+    Route::get('purchases/{purchase}', [StockInController::class, 'show'])->name('purchases.show');
+
+    Route::redirect('sales', '/stock-out')->name('sales.index');
+    Route::redirect('sales/create', '/stock-out')->name('sales.create');
+    Route::post('sales', [StockOutController::class, 'store'])->name('sales.store');
+    Route::get('sales/{sale}', [StockOutController::class, 'show'])->name('sales.show');
+    Route::get('sales/{sale}/print', [StockOutController::class, 'print'])->name('sales.print');
 
     // =========================================================================
     // Finance
@@ -60,10 +70,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // =========================================================================
-    // Settings & Users
+    // GudangIn Reports & Excel Audit
     // =========================================================================
-    Route::view('users', 'users.index')->name('users.index');
-    Route::view('settings', 'settings.index')->name('settings.index');
+    Route::get('/reports/audit', [AuditReportController::class, 'index'])->name('reports.audit');
+    Route::get('/reports/audit/export', [AuditReportController::class, 'exportExcel'])->name('reports.audit.export');
+
+    // =========================================================================
+    // Super Admin Exclusive Area
+    // =========================================================================
+    Route::middleware(['super_admin'])->group(function () {
+        Route::view('users', 'users.index')->name('users.index');
+        Route::view('settings', 'settings.index')->name('settings.index');
+    });
 
     // =========================================================================
     // Internal APIs (AJAX)

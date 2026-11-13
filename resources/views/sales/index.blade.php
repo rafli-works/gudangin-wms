@@ -1,15 +1,18 @@
-<x-app-layout title="Sales">
+<x-app-layout title="Riwayat Stock Out">
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-foreground leading-tight">
-                {{ __('Sales') }}
-            </h2>
+            <div>
+                <h2 class="font-bold text-xl text-foreground leading-tight">
+                    {{ __('Riwayat Stock Out (Barang Keluar)') }}
+                </h2>
+                <p class="text-xs text-muted-foreground mt-0.5">Daftar pengeluaran barang gudang ke customer dan mitra.</p>
+            </div>
             <x-primary-button
                 x-data
-                x-on:click="window.location.href = '{{ route('sales.create') }}'"
+                x-on:click="window.location.href = '{{ route('stock-out.create') }}'"
             >
                 <x-heroicon-o-plus class="w-4 h-4 mr-2" />
-                {{ __('Create Sale') }}
+                {{ __('+ Input Stock Out') }}
             </x-primary-button>
         </div>
     </x-slot>

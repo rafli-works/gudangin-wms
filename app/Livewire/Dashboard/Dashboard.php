@@ -13,16 +13,14 @@ class Dashboard extends Component
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
 
-    public array $stats = [];
+    public array $warehouseMetrics = [];
     public array $lowStockProducts = [];
-    public array $recentSales = [];
     public array $topProducts = [];
-    public array $topCustomers = [];
+    public array $topSuppliers = [];
 
     // Charts Data
-    public array $salesChart = [];
-    public array $cashFlowChart = [];
-    public array $expenseChart = [];
+    public array $outboundChart = [];
+    public array $stockMovementChart = [];
 
     public function mount(DashboardStatsService $service)
     {
@@ -31,7 +29,6 @@ class Dashboard extends Component
 
     public function updatedDateFilter()
     {
-        // If Custom is selected, we wait for dates.
         if ($this->dateFilter !== DatePeriod::CUSTOM->value) {
             $this->loadStats(app(DashboardStatsService::class));
         }
@@ -51,54 +48,31 @@ class Dashboard extends Component
     {
         [$startDate, $endDate] = $this->getDateRange();
 
-        // 1. Sales Stats
-        $salesStats = $service->getSalesStats($startDate, $endDate, $this->dateFilter);
+        // 1. Warehouse Key Metrics
+        $this->warehouseMetrics = $service->getWarehouseMetrics();
 
-        // 2. Cash Flow Stats
-        $cashFlowStats = $service->getCashFlowStats($startDate, $endDate, $this->dateFilter);
-
-
-        $this->stats = [
-            'total_sales' => $salesStats['total_revenue'],
-            'sales_count' => $salesStats['count'],
-            'gross_profit' => $salesStats['gross_profit'],
-            'income' => $cashFlowStats['income'],
-            'expense' => $cashFlowStats['expense'],
-            'net_cash_flow' => $cashFlowStats['net_cash_flow'],
-        ];
-
-        // 3. Lists
+        // 2. Low Stock Products
         $this->lowStockProducts = $service->getLowStockProducts(5);
+
+        // 3. Top Outbound Products (Produk Terbanyak Keluar)
         $this->topProducts = $service->getTopProducts($startDate, $endDate, 5);
-        $this->recentSales = $service->getRecentSales(5);
-        $this->topCustomers = $service->getTopCustomers($startDate, $endDate, 5);
 
-        // 4. Prepare Chart Data
-        $salesTrend = $service->getSalesTrend($startDate, $endDate);
+        // 4. Top Suppliers (Pemasok dengan barang terbanyak dikirim)
+        $this->topSuppliers = $service->getTopSuppliers($startDate, $endDate, 5);
 
-        $this->salesChart = [
-            'labels' => array_keys($salesTrend),
-            'data' => array_values($salesTrend),
+        // 5. Outbound Items Trend (Banyak barang keluar dalam interval waktu)
+        $outboundTrend = $service->getOutboundTrend($startDate, $endDate);
+        $this->outboundChart = [
+            'labels' => array_keys($outboundTrend),
+            'data' => array_values($outboundTrend),
         ];
 
-        $cashFlowTrend = $service->getCashFlowTrend($startDate, $endDate);
-
-        $this->cashFlowChart = [
-            'labels' => array_keys($cashFlowTrend['income']),
-            'income' => array_values($cashFlowTrend['income']),
-            'expense' => array_values($cashFlowTrend['expense']),
-        ];
-
-        $expenseBreakdown = $service->getExpenseBreakdown($startDate, $endDate);
-        $this->expenseChart = [
-            'labels' => array_column($expenseBreakdown, 'category_name'),
-            'series' => array_column($expenseBreakdown, 'total_amount'),
-        ];
+        // 6. Stock In vs Stock Out Movement (Grafik barang masuk vs barang keluar harian)
+        $this->stockMovementChart = $service->getStockMovementTrend($startDate, $endDate);
 
         $this->dispatch('stats-updated', [
-            'sales' => $this->salesChart,
-            'cashFlow' => $this->cashFlowChart,
-            'expense' => $this->expenseChart,
+            'outbound' => $this->outboundChart,
+            'stockMovement' => $this->stockMovementChart,
         ]);
     }
 

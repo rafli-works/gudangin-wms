@@ -22,6 +22,9 @@ class UserService
                 'username' => $data->username,
                 'email' => $data->email,
                 'password' => Hash::make($data->password),
+                'role' => $data->role,
+                'jabatan' => $data->jabatan,
+                'is_active' => true,
             ]);
 
             Cache::forget('users_list_all');
@@ -37,6 +40,8 @@ class UserService
                 'name' => $data->name,
                 'username' => $data->username,
                 'email' => $data->email,
+                'role' => $data->role,
+                'jabatan' => $data->jabatan,
             ];
 
             if ($data->password) {
@@ -54,19 +59,19 @@ class UserService
     public function deleteUser(User $user): void
     {
         if ($user->id === Auth::id()) {
-            throw ValidationException::withMessages(['user' => 'You cannot delete your own account.']);
+            throw ValidationException::withMessages(['user' => 'Anda tidak bisa menghapus akun sendiri.']);
         }
 
         if ($user->sales()->exists()) {
-            throw ValidationException::withMessages(['user' => 'Cannot delete user who has recorded sales.']);
+            throw ValidationException::withMessages(['user' => 'Tidak dapat menghapus user yang sudah memiliki riwayat transaksi pengeluaran stok.']);
         }
 
         if (Purchase::where('created_by', $user->id)->exists()) {
-            throw ValidationException::withMessages(['user' => 'Cannot delete user who has recorded purchases.']);
+            throw ValidationException::withMessages(['user' => 'Tidak dapat menghapus user yang sudah memiliki riwayat transaksi pemasukan stok.']);
         }
 
         if (FinanceTransaction::where('created_by', $user->id)->exists()) {
-            throw ValidationException::withMessages(['user' => 'Cannot delete user who has recorded finance transactions.']);
+            throw ValidationException::withMessages(['user' => 'Tidak dapat menghapus user yang memiliki transaksi keuangan.']);
         }
 
         $user->delete();

@@ -22,19 +22,44 @@ class PurchaseService
     {
         return DB::transaction(function () use ($data, $userId) {
             try {
+                $invoiceNumber = $data->invoice_number ?: ('INB-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(5)));
+
                 $purchase = Purchase::create([
-                    'invoice_number' => $data->invoice_number,
-                    'supplier_id' => $data->supplier_id,
-                    'purchase_date' => $data->purchase_date,
-                    'due_date' => $data->due_date,
-                    'status' => $data->status,
-                    'notes' => $data->notes,
-                    'proof_image' => $data->proof_image,
+                    'invoice_number' => $invoiceNumber,
+                    'supplier_id'    => $data->supplier_id,
+                    'purchase_date'  => $data->purchase_date,
+                    'due_date'       => $data->due_date ?? $data->purchase_date,
+                    'status'         => PurchaseStatus::RECEIVED, // WMS: Barang fisik langsung diterima di gudang
+                    'notes'          => $data->notes,
+                    'proof_image'    => $data->proof_image,
                     'created_by'     => $userId,
                     'total'          => 0,
                 ]);
 
-                $this->syncItems($purchase, $data->items);
+                $total = 0;
+                foreach ($data->items as $itemData) {
+                    $subtotal = $itemData->quantity * $itemData->unit_price;
+
+                    PurchaseItem::create([
+                        'purchase_id'   => $purchase->id,
+                        'product_id'    => $itemData->product_id,
+                        'quantity'      => $itemData->quantity,
+                        'unit_price'    => $itemData->unit_price,
+                        'subtotal'      => $subtotal,
+                        'selling_price' => $itemData->selling_price,
+                    ]);
+
+                    // Real-time WMS stock increment: bertambah langsung ke stok fisik produk
+                    Product::where('id', $itemData->product_id)->increment('quantity', $itemData->quantity);
+
+                    $total += $subtotal;
+                }
+
+                $purchase->update(['total' => $total]);
+
+                // Invalidate real-time caches
+                \Illuminate\Support\Facades\Cache::forget('dashboard_warehouse_metrics');
+                \Illuminate\Support\Facades\Cache::forget('dashboard_low_stock');
 
                 return $purchase;
 

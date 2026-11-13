@@ -1,4 +1,4 @@
-<x-app-layout title="POS">
+<x-app-layout title="Stock Out">
     <div class="mx-auto sm:px-6 lg:px-8 py-4"
          x-data="pos()"
          x-init="init()"
@@ -7,7 +7,25 @@
          @keydown.window.f3.prevent="openConfirmation()"
          @keydown.window.f4.prevent="openCustomerModal()"
     >
-        <div class="flex flex-col lg:flex-row h-[calc(100vh-100px)] space-y-4 lg:space-y-0 lg:space-x-4 relative">
+        <!-- Header -->
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <span class="inline-flex p-2 bg-rose-50 text-rose-600 rounded-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </span>
+                    Stock Out
+                </h1>
+                <p class="text-sm text-gray-500">Pencatatan pengeluaran barang dari gudang ke Customer</p>
+            </div>
+            <div class="text-sm text-gray-500">
+                <a href="{{ route('dashboard') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">Dashboard</a>
+                <span class="mx-1">/</span>
+                <span class="text-gray-700 font-semibold">Stock Out</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row h-[calc(100vh-160px)] space-y-4 lg:space-y-0 lg:space-x-4 relative">
 
             <!-- Left Side: Transaction Details (70%) -->
             <div class="w-full lg:w-[70%] flex flex-col space-y-4 h-full">
@@ -27,11 +45,9 @@
                             <thead class="bg-gray-50 sticky top-0 z-10">
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Disc/Unit</th>
-                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
@@ -39,38 +55,24 @@
                                 <template x-for="(item, index) in cart" :key="item.id">
                                     <tr :class="index % 2 === 0 ? 'bg-white' : 'bg-gray-50'" class="hover:bg-indigo-50 transition-colors">
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900" x-text="item.name"></div>
+                                            <div class="text-sm font-semibold text-gray-900" x-text="item.name"></div>
                                             <div class="text-xs text-gray-500" x-text="item.sku"></div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500" x-text="formatCurrency(item.price)"></td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
                                             <div class="flex items-center justify-center">
                                                 <input type="number" x-model="item.quantity" min="1" :max="item.max_stock"
                                                     @input="validateQty(index)"
-                                                    class="w-20 text-center border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm"
+                                                    class="w-24 text-center border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm font-semibold"
                                                     placeholder="1">
                                             </div>
                                             <div x-show="item.quantity > item.max_stock" class="text-xs text-red-600 mt-1">
                                                 Max: <span x-text="item.max_stock"></span>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500" x-text="item.unit"></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                                            <div class="relative rounded-md shadow-sm w-32 ml-auto">
-                                        <div class="absolute inset-y-0 flex items-center pointer-events-none" :class="window.currencyPosition === 'left' ? 'left-0 pl-2' : 'right-0 pr-2'">
-                                            <span class="text-gray-500 sm:text-xs" x-text="window.currencySymbol"></span>
-                                        </div>
-                                        <input
-                                            type="text"
-                                            :value="formatNumber(item.discount)"
-                                            @input="item.discount = unformatNumber($event.target.value)"
-                                            class="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                            :class="window.currencyPosition === 'left' ? 'pl-8 pr-2 text-right' : 'pr-8 pl-2 text-left'"
-                                            placeholder="0"
-                                        >
-                                            </div>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-600" x-text="item.unit || 'Pcs'"></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-bold text-gray-900">
+                                            <span x-text="item.quantity"></span> <span class="text-xs font-normal text-gray-500" x-text="item.unit || 'Pcs'"></span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900" x-text="formatCurrency((item.price - item.discount) * item.quantity)"></td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                             <button @click="removeFromCart(index)" class="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 focus:outline-none transition-colors mx-auto">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -80,9 +82,9 @@
                                 </template>
                                 <template x-if="cart.length === 0">
                                     <tr>
-                                        <td colspan="7" class="px-6 py-20 text-center text-gray-500">
+                                        <td colspan="5" class="px-6 py-20 text-center text-gray-500">
                                             <div class="flex flex-col items-center justify-center">
-                                                <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                                <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                                                 <p class="text-base font-medium">Cart is empty</p>
                                                 <p class="text-sm text-gray-400">Search products above to start transaction</p>
                                             </div>
@@ -95,11 +97,11 @@
                 </div>
             </div>
 
-            <!-- Right Side: Payment Details (30%) -->
+            <!-- Right Side: Stock Out Details (30%) -->
             <div class="w-full lg:w-[30%] flex flex-col bg-white rounded-lg shadow border border-gray-200 h-full">
                 <!-- Header -->
                 <div class="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-                    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wide">Payment Details</h2>
+                    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wide">Detail Pengeluaran (Stock Out)</h2>
                 </div>
 
                 <div class="p-4 space-y-6 flex-1 overflow-y-auto">
@@ -134,122 +136,34 @@
                         </div>
                     </div>
 
-                    <!-- Totals Section -->
-                    <div class="space-y-3">
+                    <!-- Quantity Summary Section -->
+                    <div class="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
                         <div class="flex justify-between items-center text-gray-600 text-sm font-medium">
-                            <span>Subtotal</span>
-                            <span x-text="formatCurrency(subtotal)"></span>
+                            <span>Total Item (SKU)</span>
+                            <span class="font-bold text-gray-800" x-text="cart.length + ' Item'"></span>
                         </div>
-                        <div class="flex justify-between items-center mt-2">
-                             <span class="text-sm font-medium text-gray-500">Discount (Global)</span>
-                             <div class="relative w-32">
-                                <div class="absolute inset-y-0 flex items-center pointer-events-none" :class="window.currencyPosition === 'left' ? 'left-0 pl-2' : 'right-0 pr-2'">
-                                    <span class="text-gray-500 sm:text-xs" x-text="window.currencySymbol"></span>
-                                </div>
-                                <input
-                                    type="text"
-                                    :value="formatNumber(globalDiscount)"
-                                    @input="globalDiscount = unformatNumber($event.target.value)"
-                                    class="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-1"
-                                    :class="window.currencyPosition === 'left' ? 'pl-8 pr-2 text-right' : 'pr-8 pl-2 text-left'"
-                                    placeholder="0"
-                                >
-                             </div>
+                        <div class="flex justify-between items-center text-gray-600 text-sm font-medium">
+                            <span>Quantity Produk Keluar</span>
+                            <span class="font-bold text-gray-800" x-text="totalQty + ' Unit'"></span>
                         </div>
-                        <div class="flex justify-between text-red-500 text-sm" x-show="totalDiscount > 0">
-                            <span>Total Discount</span>
-                            <span x-text="'- ' + formatCurrency(totalDiscount)"></span>
-                        </div>
-                        <div class="flex justify-between items-center pt-4 border-t border-gray-100">
-                            <span class="text-lg font-bold text-gray-800">TOTAL</span>
-                            <span class="text-2xl font-extrabold text-blue-600" x-text="formatCurrency(total)"></span>
+                        <div class="pt-4 border-t border-slate-200 flex justify-between items-baseline">
+                            <span class="text-sm font-bold text-gray-700 uppercase tracking-wide">TOTAL KUANTITAS</span>
+                            <div class="text-right">
+                                <span class="text-3xl font-extrabold text-blue-600" x-text="totalQty"></span>
+                                <span class="text-sm font-medium text-gray-500 ml-1">Unit</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Payment Input -->
-                    <div class="space-y-4 pt-4 border-t border-gray-200">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Payment Method</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button
-                                    @click="payment.method = 'cash'"
-                                    class="px-4 py-2 text-sm font-medium rounded-md border"
-                                    :class="payment.method === 'cash' ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
-                                >
-                                    CASH
-                                </button>
-                                <button
-                                    @click="payment.method = 'transfer'"
-                                    class="px-4 py-2 text-sm font-medium rounded-md border"
-                                    :class="payment.method === 'transfer' ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
-                                >
-                                    TRANSFER
-                                </button>
-                            </div>
-                        </div>
-
-                        <template x-if="payment.method === 'cash'">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Cash Received</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 flex items-center pointer-events-none" :class="window.currencyPosition === 'left' ? 'left-0 pl-3' : 'right-0 pr-3'">
-                                        <span class="text-gray-500 font-bold" x-text="window.currencySymbol"></span>
-                                    </div>
-                                    <input
-                                        type="text"
-                                        :value="formatNumber(payment.cash_received)"
-                                        @input="payment.cash_received = unformatNumber($event.target.value)"
-                                        class="block w-full py-3 text-lg font-bold text-gray-900 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                                        :class="window.currencyPosition === 'left' ? 'pl-10 pr-3 text-left' : 'pr-10 pl-3 text-right'"
-                                        placeholder="0"
-                                    >
-                                </div>
-
-                                <!-- Quick Cash Buttons -->
-                                <div class="grid grid-cols-4 gap-2 mt-2">
-                                    <button @click="payment.cash_received = total" class="px-2 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-xs font-bold text-gray-700">
-                                        EXACT
-                                    </button>
-                                    <button @click="payment.cash_received = (parseInt(payment.cash_received) || 0) + 100000" class="px-2 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-xs font-bold text-gray-700">
-                                        +100K
-                                    </button>
-                                    <button @click="payment.cash_received = (parseInt(payment.cash_received) || 0) + 50000" class="px-2 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-xs font-bold text-gray-700">
-                                        +50K
-                                    </button>
-                                    <button @click="payment.cash_received = (parseInt(payment.cash_received) || 0) + 20000" class="px-2 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-xs font-bold text-gray-700">
-                                        +20K
-                                    </button>
-                                    <button @click="payment.cash_received = (parseInt(payment.cash_received) || 0) + 10000" class="px-2 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-xs font-bold text-gray-700">
-                                        +10K
-                                    </button>
-                                    <button @click="payment.cash_received = (parseInt(payment.cash_received) || 0) + 5000" class="px-2 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-xs font-bold text-gray-700">
-                                        +5K
-                                    </button>
-                                    <button @click="payment.cash_received = (parseInt(payment.cash_received) || 0) + 2000" class="px-2 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-xs font-bold text-gray-700">
-                                        +2K
-                                    </button>
-                                    <button @click="payment.cash_received = (parseInt(payment.cash_received) || 0) + 1000" class="px-2 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-xs font-bold text-gray-700">
-                                        +1K
-                                    </button>
-                                </div>
-                                <div class="bg-green-50 p-3 rounded-md border border-green-100 flex justify-between items-center mt-2"
-                                     :class="change < 0 ? 'bg-red-50 border-red-100 text-red-800' : 'bg-green-50 border-green-100 text-green-800'">
-                                    <span class="text-sm font-medium uppercase" x-text="change < 0 ? 'Due' : 'Change'"></span>
-                                    <span class="text-xl font-bold"
-                                          :class="change < 0 ? 'text-red-700' : 'text-green-700'"
-                                          x-text="formatCurrency(Math.abs(change))"></span>
-                                </div>
-                            </div>
-                        </template>
-
-                        <div>
-                            <textarea
-                                x-model="payment.notes"
-                                rows="3"
-                                class="block w-full text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 py-2"
-                                placeholder="Transaction Notes / Address..."
-                            ></textarea>
-                        </div>
+                    <!-- Notes -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Catatan Pengeluaran</label>
+                        <textarea
+                            x-model="payment.notes"
+                            rows="3"
+                            class="block w-full text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 py-2"
+                            placeholder="Catatan / No. Surat Jalan / Tujuan distribusi..."
+                        ></textarea>
                     </div>
                 </div>
 
@@ -266,12 +180,12 @@
                     <button
                         @click="openConfirmation()"
                         :disabled="isSubmitting || cart.length === 0"
-                        class="w-2/3 flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        class="w-2/3 flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         <template x-if="isSubmitting">
                             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </template>
-                        <span x-text="isSubmitting ? 'Processing...' : 'PAY (F3)'"></span>
+                        <span x-text="isSubmitting ? 'Processing...' : 'Save'"></span>
                     </button>
                 </div>
             </div>
@@ -295,28 +209,21 @@
                     // TomSelect Instances
                     productTs: null,
                     customerTs: null,
-
                     lastSearchQuery: '',
 
                     init() {
-                         // Load from LocalStorage
                         const savedCart = localStorage.getItem('pos_cart');
                         if (savedCart) this.cart = JSON.parse(savedCart);
 
                         const savedCustomer = localStorage.getItem('pos_customer');
                         if (savedCustomer) this.selectedCustomer = JSON.parse(savedCustomer);
 
-                        const savedPayment = localStorage.getItem('pos_payment');
-                        if (savedPayment) this.payment = JSON.parse(savedPayment);
+                        const savedNotes = localStorage.getItem('pos_notes');
+                        if (savedNotes) this.payment.notes = savedNotes;
 
-                        const savedGlobalDiscount = localStorage.getItem('pos_globalDiscount');
-                        if (savedGlobalDiscount) this.globalDiscount = parseInt(savedGlobalDiscount);
-
-                        // Watchers
                         this.$watch('cart', (val) => localStorage.setItem('pos_cart', JSON.stringify(val)));
                         this.$watch('selectedCustomer', (val) => localStorage.setItem('pos_customer', JSON.stringify(val)));
-                        this.$watch('payment', (val) => localStorage.setItem('pos_payment', JSON.stringify(val)));
-                        this.$watch('globalDiscount', (val) => localStorage.setItem('pos_globalDiscount', val));
+                        this.$watch('payment.notes', (val) => localStorage.setItem('pos_notes', val));
 
                         this.initProductSelect();
                         this.initCustomerSelect();
@@ -336,7 +243,7 @@
                             searchField: ['name', 'sku'],
                             closeAfterSelect: false,
                             openOnFocus: true,
-                            preload: 'focus', // UX Improvement
+                            preload: 'focus',
                             load: (query, callback) => {
                                 this.lastSearchQuery = query;
 
@@ -365,9 +272,8 @@
                                                     <div class="text-xs text-gray-500">${escape(item.sku)}</div>
                                                 </div>
                                                 <div class="text-right">
-                                                    <div class="font-bold text-indigo-600">${this.formatCurrency(item.selling_price)}</div>
-                                                    <div class="text-xs ${item.quantity > 0 ? 'text-green-600' : 'text-red-600'}">
-                                                        Stock: ${escape(item.quantity)} ${escape(item.unit?.symbol || '')}
+                                                    <div class="text-xs font-semibold ${item.quantity > 0 ? 'text-green-600' : 'text-red-600'}">
+                                                        Stok: ${escape(item.quantity)} ${escape(item.unit?.symbol || 'Pcs')}
                                                     </div>
                                                 </div>
                                             </div>
@@ -384,14 +290,11 @@
                                     if(item) {
                                         this.addToCart(item);
 
-                                        // Improved Logic: Prevent double input on Enter
                                         const cleanup = () => {
                                             this.productTs.clear(true);
                                             this.productTs.setTextboxValue(this.lastSearchQuery);
                                             this.productTs.refreshOptions(false);
                                         };
-
-                                        // Small delay to ensure TS internal "Enter" handling is done
                                         setTimeout(cleanup, 10);
                                     }
                                 }
@@ -411,8 +314,8 @@
                             valueField: 'value',
                             labelField: 'text',
                             searchField: 'text',
-                            preload: 'focus', // UX Improvement
-                            openOnFocus: true, // UX Improvement
+                            preload: 'focus',
+                            openOnFocus: true,
                             load: (query, callback) => {
                                 var url = '{{ route("ajax.customers.search") }}';
 
@@ -445,16 +348,10 @@
                                 if (value) {
                                     const item = this.customerTs.options[value];
                                     if(item) {
-                                        // Update selected customer object structure to match what UI expects
-                                        // The UI expects { id, name, phone, ... }
-                                        // Our controller returns { value, text, name, phone }
-                                        // So we map value to id for consistency if needed, or just use item.
                                         this.selectedCustomer = {
                                             id: item.value,
                                             name: item.name,
                                             phone: item.phone,
-                                            // email and address are not returned by search currently.
-                                            // If needed we should add them to controller.
                                             email: item.email || '',
                                             address: item.address || ''
                                         };
@@ -475,8 +372,7 @@
                     clearStorage() {
                         localStorage.removeItem('pos_cart');
                         localStorage.removeItem('pos_customer');
-                        localStorage.removeItem('pos_payment');
-                        localStorage.removeItem('pos_globalDiscount');
+                        localStorage.removeItem('pos_notes');
                     },
 
                     // Cart Management
@@ -485,9 +381,9 @@
                         if (existing) {
                             if (existing.quantity < product.quantity) {
                                 existing.quantity++;
-                                this.$dispatch('toast', { message: 'Product already exists. Quantity updated.', type: 'info' });
+                                this.$dispatch('toast', { message: 'Produk sudah ada di list. Kuantitas ditambah.', type: 'info' });
                             } else {
-                                this.$dispatch('toast', { message: 'Insufficient stock!', type: 'error' });
+                                this.$dispatch('toast', { message: 'Stok gudang tidak mencukupi!', type: 'error' });
                             }
                         } else {
                             if (product.quantity > 0) {
@@ -495,15 +391,15 @@
                                     id: product.id,
                                     name: product.name,
                                     sku: product.sku,
-                                    price: product.selling_price,
+                                    price: product.selling_price || 0,
                                     quantity: 1,
                                     max_stock: product.quantity,
-                                    unit: product.unit ? product.unit.symbol : '',
+                                    unit: product.unit ? product.unit.symbol : 'Pcs',
                                     discount: 0
                                 });
-                                this.$dispatch('toast', { message: 'Product "' + product.name + '" added to cart.', type: 'success' });
+                                this.$dispatch('toast', { message: 'Produk "' + product.name + '" ditambahkan.', type: 'success' });
                             } else {
-                                this.$dispatch('toast', { message: 'Out of Stock!', type: 'error' });
+                                this.$dispatch('toast', { message: 'Stok habis!', type: 'error' });
                             }
                         }
                     },
@@ -512,150 +408,62 @@
                         const item = this.cart[index];
                         if (item.quantity > item.max_stock) {
                             item.quantity = item.max_stock;
-                            this.$dispatch('toast', { message: 'Maksimum stok tercapai', type: 'warning' });
+                            this.$dispatch('toast', { message: 'Maksimum stok tercapai (' + item.max_stock + ')', type: 'warning' });
                         }
-                        if (item.quantity < 1) item.quantity = 1;
+                        if (item.quantity < 1 || !item.quantity) item.quantity = 1;
                     },
 
                     removeFromCart(index) {
                         const removedItem = this.cart[index];
                         this.cart.splice(index, 1);
-                        this.$dispatch('toast', { message: 'Product "' + removedItem.name + '" removed from cart.', type: 'info' });
+                        this.$dispatch('toast', { message: 'Produk "' + removedItem.name + '" dihapus.', type: 'info' });
                     },
 
-                    // Customer Modal Open
                     openCustomerModal() {
                         this.$dispatch('open-modal', { name: 'customer-modal' });
                         this.$nextTick(() => {
                             setTimeout(() => {
                                 this.$refs.nameInput && this.$refs.nameInput.focus();
-                            }, 100); // Small delay to ensure modal transition
+                            }, 100);
                         });
                     },
 
-                    // Computed properties (simulated getters in Alpine)
-                    get subtotal() {
-                        return this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                    get totalQty() {
+                        return this.cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
                     },
 
-                    get totalDiscount() {
-                        return this.cart.reduce((sum, item) => sum + (item.discount * item.quantity), 0);
-                    },
-
-                    get total() {
-                        return this.subtotal - this.totalDiscount - this.globalDiscount;
-                    },
-
-                    get change() {
-                        if (this.payment.method !== 'cash') return 0;
-                        return this.payment.cash_received - this.total;
-                    },
-
-                    // Helpers
-                    formatCurrency(value) {
-                        return window.formatMoney(value);
-                    },
-
-                    unformatNumber(value) {
-                        if(typeof value !== 'string') return value || 0;
-                        
-                        // Let's strip out the thousand separator safely
-                        // e.g. "1,000.50" with thousand="," -> "1000.50"
-                        let raw = value;
-                        if(window.thousandSeparator) {
-                            raw = raw.split(window.thousandSeparator).join('');
-                        }
-                        
-                        // Replace the designated decimal separator with a standard dot for JS parsing
-                        if(window.decimalSeparator && window.decimalSeparator !== '.') {
-                            raw = raw.replace(window.decimalSeparator, '.');
-                        }
-
-                        // Remove any characters that aren't numbers, dot, or minus sign
-                        raw = raw.replace(/[^0-9\.-]/g, '');
-                        
-                        // If it ends with a dot or dot-zero(s), we don't want to parse it yet 
-                        // as it breaks the user's typing experience (e.g. typing "10." becomes "10" instantly)
-                        // However, for pure JS calculation, we must return a number.
-                        // The trick here is handled in the formatNumber/binding, but unformat must return string if it ends with dot
-                        
-                        if (raw === '' || raw === '-') return 0;
-                        // Return the raw string if the user is actively typing a decimal
-                        if (raw.endsWith('.')) return raw;
-                        
-                        return parseFloat(raw) || 0;
-                    },
-
-                    formatNumber(value) {
-                        // If the user is mid-typing a decimal (e.g "10."), just return as is
-                        // to prevent the cursor from jumping and erasing the dot.
-                        if (typeof value === 'string' && value.endsWith('.')) {
-                             return value.replace('.', window.decimalSeparator);
-                        }
-                        
-                        let amount = parseFloat(value) || 0;
-                        let isNegative = amount < 0;
-                        amount = Math.abs(amount);
-
-                        // Only force fraction digits if we are NOT actively typing
-                        // Because formatting actively typing "0.5" might force "0.50" immediately.
-                        // We will just let `Math.abs` Handle it unless formatting for display.
-                        
-                        let strAmount = amount.toString();
-                        // if we want to force fraction, use toFixed here. 
-                        // But for active input fields, forcing .toFixed(2) while typing is bad UX.
-                        // For display fields (Total), it's fine. 
-                        // Since this is used in BOTH, we check if it's an integer.
-                        
-                        let parts = strAmount.split('.');
-                        let integerPart = parts[0];
-                        let decimalPart = parts.length > 1 ? window.decimalSeparator + parts[1] : '';
-
-                        let rgx = /(\d+)(\d{3})/;
-                        while (rgx.test(integerPart)) {
-                            integerPart = integerPart.replace(rgx, '$1' + window.thousandSeparator + '$2');
-                        }
-
-                        let num = integerPart + decimalPart;
-                        return isNegative ? '-' + num : num;
-                    },
-
-                    // Confirmation
                     openConfirmation() {
-                        if (this.cart.length === 0) return;
-                        if (this.payment.method === 'cash' && this.payment.cash_received < this.total) {
-                            this.$dispatch('toast', { message: 'Insufficient payment!', type: 'error' });
+                        if (this.cart.length === 0) {
+                            this.$dispatch('toast', { message: 'Pilih minimal satu barang untuk dikeluarkan!', type: 'error' });
                             return;
                         }
-
                         this.$dispatch('open-modal', { name: 'confirmation-modal' });
                     },
 
-                    // Submit Sale
                     async submitSale() {
                         this.isSubmitting = true;
 
                         try {
                             const items = this.cart.map(item => ({
                                 product_id: item.id,
-                                quantity: item.quantity,
-                                unit_price: item.price,
-                                discount: item.discount
+                                quantity: parseInt(item.quantity) || 1,
+                                unit_price: item.price || 0,
+                                discount: 0
                             }));
 
                             const payload = {
                                 customer_id: this.selectedCustomer?.id,
                                 items: items,
-                                payment_method: this.payment.method,
-                                cash_received: this.payment.cash_received,
-                                notes: this.payment.notes,
-                                global_discount: this.globalDiscount,
-                                status: this.saleStatus,
+                                payment_method: 'cash',
+                                cash_received: 0,
+                                notes: this.payment.notes || '',
+                                global_discount: 0,
+                                status: 'completed',
                                 sale_date: new Date().toISOString().slice(0, 10),
                                 _token: '{{ csrf_token() }}'
                             };
 
-                            const res = await fetch('{{ route("sales.store") }}', {
+                            const res = await fetch('{{ route("stock-out.store") }}', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -669,23 +477,16 @@
 
                             if (res.ok && data.success) {
                                 this.$dispatch('close-modal', { name: 'confirmation-modal' });
-
-                                if (data.print_url) {
-                                    window.open(data.print_url, '_blank');
-                                }
-
                                 this.clearStorage();
                                 this.resetForm();
-
-                                this.$dispatch('toast', { message: 'Transaction Successful!', type: 'success' });
-
+                                this.$dispatch('toast', { message: 'Stock Out berhasil disimpan!', type: 'success' });
                             } else {
-                                this.$dispatch('toast', { message: data.message || 'Error occurred', type: 'error' });
+                                this.$dispatch('toast', { message: data.message || 'Terjadi kesalahan sistem', type: 'error' });
                             }
 
                         } catch (e) {
                             console.error(e);
-                            this.$dispatch('toast', { message: 'Network error occurred', type: 'error' });
+                            this.$dispatch('toast', { message: 'Terjadi gangguan jaringan', type: 'error' });
                         } finally {
                             this.isSubmitting = false;
                         }
@@ -699,8 +500,6 @@
                             cash_received: 0,
                             notes: ''
                         };
-                        this.globalDiscount = 0;
-                        // Reset TomSelects
                         this.productTs && this.productTs.clear();
                         this.customerTs && this.customerTs.clear();
                     }
@@ -713,104 +512,66 @@
             <div class="p-6">
                 <!-- Header -->
                 <div class="mb-6 space-y-1.5 text-center sm:text-left border-b border-gray-200 pb-4">
-                    <h3 class="text-lg font-semibold leading-none tracking-tight text-foreground">
-                        Payment Confirmation
+                    <h3 class="text-lg font-bold leading-none tracking-tight text-gray-900">
+                        Konfirmasi Simpan Stock Out
                     </h3>
-                    <p class="text-sm text-muted-foreground">
-                        Please review transaction details before processing.
+                    <p class="text-sm text-gray-500">
+                        Periksa kembali rincian barang keluar sebelum menyimpan transaksi.
                     </p>
                 </div>
 
                 <!-- Summary Grid -->
-                <div class="grid gap-4 py-4">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium text-gray-500">Total Items</span>
-                        <span class="font-semibold" x-text="cart.reduce((sum, item) => sum + parseInt(item.quantity), 0)"></span>
+                <div class="space-y-3 py-2">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-500 font-medium">Customer</span>
+                        <span class="font-bold text-gray-900" x-text="selectedCustomer ? selectedCustomer.name : 'Umum / Retail'"></span>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium text-gray-500">Subtotal</span>
-                        <span class="font-semibold" x-text="formatCurrency(subtotal)"></span>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-500 font-medium">Total Item (SKU)</span>
+                        <span class="font-bold text-gray-900" x-text="cart.length + ' Item'"></span>
                     </div>
-                    <div class="flex items-center justify-between text-red-600" x-show="totalDiscount > 0">
-                        <span class="text-sm font-medium">Discount</span>
-                        <span class="font-semibold" x-text="'- ' + formatCurrency(totalDiscount)"></span>
+                    <div class="flex items-center justify-between text-sm border-t border-gray-100 pt-3">
+                        <span class="text-gray-700 font-semibold">Total Kuantitas Keluar</span>
+                        <span class="text-xl font-extrabold text-blue-600" x-text="totalQty + ' Unit'"></span>
                     </div>
-                    <div class="flex items-center justify-between text-red-600" x-show="globalDiscount > 0">
-                        <span class="text-sm font-medium">Extra Discount (Global)</span>
-                        <span class="font-semibold" x-text="'- ' + formatCurrency(globalDiscount)"></span>
-                    </div>
-                    <div class="flex items-center justify-between border-t border-gray-100 pt-2 mt-2">
-                        <span class="text-lg font-bold">Total Bill</span>
-                        <span class="text-lg font-bold text-blue-600" x-text="formatCurrency(total)"></span>
-                    </div>
-
-                    <div class="flex items-center justify-between border-t border-gray-100 pt-2 mt-2" x-show="payment.method === 'cash'">
-                        <span class="text-sm font-medium text-gray-500">Cash Received</span>
-                        <span class="font-semibold" x-text="formatCurrency(payment.cash_received)"></span>
-                    </div>
-                    <div class="flex items-center justify-between" x-show="payment.method === 'cash'">
-                        <span class="text-sm font-medium text-gray-500">Change</span>
-                        <span class="font-bold text-green-600" x-text="formatCurrency(change)"></span>
+                    <div class="text-xs text-gray-500 pt-2" x-show="payment.notes">
+                        <span class="font-semibold text-gray-700">Catatan:</span>
+                        <p class="mt-1 italic bg-gray-50 p-2 rounded border border-gray-200" x-text="payment.notes"></p>
                     </div>
                 </div>
 
                 <!-- Actions -->
-                <div class="mt-6 border-t border-gray-200 pt-4 space-y-4">
-                    <!-- Status Selection -->
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Sale Status</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button
-                                @click="saleStatus = 'completed'"
-                                class="px-4 py-2 text-sm font-medium rounded-md border flex items-center justify-center transition-colors"
-                                :class="saleStatus === 'completed' ? 'bg-green-600 text-white border-green-600 shadow-sm' : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50'"
-                            >
-                                <svg x-show="saleStatus === 'completed'" class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                COMPLETED
-                            </button>
-                            <button
-                                @click="saleStatus = 'pending'"
-                                class="px-4 py-2 text-sm font-medium rounded-md border flex items-center justify-center transition-colors"
-                                :class="saleStatus === 'pending' ? 'bg-yellow-500 text-white border-yellow-500 shadow-sm' : 'bg-white text-gray-700 border-gray-300 hover:bg-yellow-50'"
-                            >
-                                <svg x-show="saleStatus === 'pending'" class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                PENDING
-                            </button>
-                        </div>
-                    </div>
+                <div class="mt-6 border-t border-gray-200 pt-4 flex gap-3">
+                    <x-secondary-button
+                        type="button"
+                        @click="$dispatch('close-modal', { name: 'confirmation-modal' })"
+                        class="w-1/3 justify-center"
+                    >
+                        Batal
+                    </x-secondary-button>
 
                     <button
                         @click="submitSale()"
                         :disabled="isSubmitting"
-                        class="w-full flex justify-center items-center py-3 px-4 rounded-lg shadow-sm text-lg font-bold text-white focus:outline-none disabled:opacity-50 transition-colors"
-                        :class="saleStatus === 'completed' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:bg-gray-700'"
+                        class="w-2/3 flex justify-center items-center py-2.5 px-4 rounded-lg shadow-sm text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition-colors"
                     >
                         <template x-if="isSubmitting">
                             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </template>
-                        <svg x-show="!isSubmitting" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        <span x-text="isSubmitting ? 'Processing...' : 'PROCESS SALE'"></span>
+                        <span x-text="isSubmitting ? 'Menyimpan...' : 'Save'"></span>
                     </button>
-
-                    <x-secondary-button
-                        type="button"
-                        @click="$dispatch('close-modal', { name: 'confirmation-modal' })"
-                        class="w-full justify-center"
-                    >
-                        Back
-                    </x-secondary-button>
                 </div>
             </div>
         </x-modal>
 
-        <!-- Create Customer Modal (Still using Blade/Alpine Hybrid for ease if reusable) -->
+        <!-- Create Customer Modal -->
         <x-modal name="customer-modal" focusable>
             <div class="p-6" x-data="{
                 newCust: { name: '', email: '', phone: '', address: '', notes: '' },
                 errors: {},
                 loading: false,
                 async save() {
-                    this.errors = {}; // Reset errors
+                    this.errors = {};
 
                     if (!this.newCust.name.trim()) {
                         this.errors.name = 'Nama wajib diisi.';
@@ -837,13 +598,10 @@
                             this.errors = {};
                         } else {
                             if (data.errors) {
-                                // Map Laravel validation errors to Alpine errors object
-                                // Laravel returns { errors: { name: ['Error msg'], ... } }
                                 Object.keys(data.errors).forEach(key => {
                                     this.errors[key] = data.errors[key][0];
                                 });
                             } else {
-                                // Fallback if generic error
                                 this.$dispatch('toast', { message: data.message || 'Error creating customer', type: 'error' });
                             }
                         }
@@ -854,10 +612,10 @@
                 <!-- Header -->
                 <div class="mb-6 space-y-1.5 text-center sm:text-left border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-semibold leading-none tracking-tight text-foreground">
-                        {{ __('Create New Customer') }}
+                        {{ __('Tambah Customer Baru') }}
                     </h3>
                     <p class="text-sm text-muted-foreground">
-                        {{ __('Add a new customer to your records for this sale.') }}
+                        {{ __('Masukkan detail customer untuk transaksi Stock Out.') }}
                     </p>
                 </div>
 
@@ -866,7 +624,7 @@
                     <div>
                         <x-form-input
                             name="new_name"
-                            label="Full Name"
+                            label="Nama Customer"
                             x-model="newCust.name"
                             x-ref="nameInput"
                             required
@@ -888,7 +646,7 @@
                         <div class="w-full sm:w-1/2">
                             <x-form-input
                                 name="new_phone"
-                                label="Phone"
+                                label="Nomor Telepon"
                                 x-model="newCust.phone"
                             />
                             <p x-show="errors.phone" x-text="errors.phone" class="text-sm font-medium text-red-600 mt-1" style="display: none;"></p>
@@ -897,26 +655,26 @@
 
                     <!-- Address -->
                     <div class="space-y-2">
-                        <x-input-label for="new_address" :value="__('Address')" />
+                        <x-input-label for="new_address" :value="__('Alamat')" />
                         <textarea
                             id="new_address"
                             x-model="newCust.address"
                             rows="3"
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            placeholder="Full Address"
+                            placeholder="Alamat lengkap customer..."
                         ></textarea>
                         <p x-show="errors.address" x-text="errors.address" class="text-sm font-medium text-red-600 mt-1" style="display: none;"></p>
                     </div>
 
                     <!-- Notes -->
                     <div class="space-y-2">
-                        <x-input-label for="new_notes" :value="__('Notes')" />
+                        <x-input-label for="new_notes" :value="__('Catatan Tambahan')" />
                         <textarea
                             id="new_notes"
                             x-model="newCust.notes"
-                            rows="3"
+                            rows="2"
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            placeholder="Additional notes..."
+                            placeholder="Catatan tambahan jika ada..."
                         ></textarea>
                         <p x-show="errors.notes" x-text="errors.notes" class="text-sm font-medium text-red-600 mt-1" style="display: none;"></p>
                     </div>
@@ -924,7 +682,7 @@
                     <!-- Actions -->
                     <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
                         <x-secondary-button type="button" x-on:click="$dispatch('close-modal', { name: 'customer-modal' })">
-                            {{ __('Cancel') }}
+                            {{ __('Batal') }}
                         </x-secondary-button>
 
                         <x-primary-button type="button" @click="save()" x-bind:disabled="loading">
@@ -934,7 +692,7 @@
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             </template>
-                            <span x-text="loading ? 'Saving...' : 'Save Customer'"></span>
+                            <span x-text="loading ? 'Menyimpan...' : 'Simpan Customer'"></span>
                         </x-primary-button>
                     </div>
                 </div>
@@ -952,26 +710,26 @@
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 class="text-lg font-semibold leading-6 text-gray-900" id="modal-title">
-                            Cancel Transaction?
+                            Batalkan Transaksi Stock Out?
                         </h3>
                         <div class="mt-2">
                             <p class="text-sm text-gray-500">
-                                Are you sure you want to cancel? All current items and selections will be lost.
+                                Apakah Anda yakin ingin membatalkan transaksi ini? Semua item yang telah dipilih akan dibersihkan.
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
-                <x-danger-button @click="resetForm(); clearStorage(); $dispatch('close-modal', { name: 'cancel-modal' }); $dispatch('toast', { message: 'Transaction Cancelled', type: 'info' })" class="w-full sm:w-auto justify-center">
-                    {{ __('Yes, Cancel Transaction') }}
+                <x-danger-button @click="resetForm(); clearStorage(); $dispatch('close-modal', { name: 'cancel-modal' }); $dispatch('toast', { message: 'Transaksi dibatalkan', type: 'info' })" class="w-full sm:w-auto justify-center">
+                    {{ __('Ya, Batalkan') }}
                 </x-danger-button>
                 <button
                     type="button"
                     @click="$dispatch('close-modal', { name: 'cancel-modal' })"
                     class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-colors"
                 >
-                    {{ __('No, Return') }}
+                    {{ __('Kembali') }}
                 </button>
             </div>
         </x-modal>

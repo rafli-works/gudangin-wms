@@ -1,18 +1,13 @@
-<x-app-layout title="Purchase Details">
+<x-app-layout title="Detail Stock In">
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-foreground leading-tight">
-                {{ __('Purchase Details') }} #{{ $purchase->invoice_number ?: $purchase->id }}
+            <h2 class="font-bold text-xl text-foreground leading-tight">
+                {{ __('Detail Stock In') }} #{{ $purchase->invoice_number ?: $purchase->id }}
             </h2>
             <div class="flex items-center gap-2">
-                <x-secondary-button href="{{ route('purchases.index') }}">
-                    &larr; {{ __('Back to List') }}
+                <x-secondary-button href="{{ route('stock-in.create') }}">
+                    &larr; {{ __('Kembali ke Stock In') }}
                 </x-secondary-button>
-                @if(in_array($purchase->status, [\App\Enums\PurchaseStatus::DRAFT, \App\Enums\PurchaseStatus::ORDERED]))
-                    <x-secondary-button href="{{ route('purchases.edit', $purchase) }}">
-                        {{ __('Edit') }}
-                    </x-secondary-button>
-                @endif
             </div>
         </div>
     </x-slot>
