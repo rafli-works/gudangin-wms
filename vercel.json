@@ -1,8 +1,6 @@
 {
   "version": 2,
   "framework": null,
-  "buildCommand": "echo 'Assets ready'",
-  "outputDirectory": "public",
   "functions": {
     "api/index.php": {
       "runtime": "vercel-php@0.7.4"
@@ -26,8 +24,8 @@
       "dest": "/public/favicon.png"
     },
     {
-      "src": "/(css|js|images|fonts|vendor)/(.*)",
-      "dest": "/public/$1/$2"
+      "src": "/(.*)\\.(css|js|jpg|jpeg|png|svg|ico|woff|woff2|ttf)",
+      "dest": "/public/$1.$2"
     },
     {
       "src": "/livewire/(.*)",
@@ -41,8 +39,8 @@
   "env": {
     "APP_ENV": "production",
     "APP_DEBUG": "true",
+    "VIEW_COMPILED_PATH": "/tmp/storage/framework/views",
     "SESSION_DRIVER": "cookie",
     "LOG_CHANNEL": "stderr"
   }
 }
-
