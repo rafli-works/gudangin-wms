@@ -12,6 +12,18 @@
       "dest": "/public/build/$1"
     },
     {
+      "src": "/livewire/livewire.js(.*)",
+      "dest": "/public/livewire/livewire.js"
+    },
+    {
+      "src": "/livewire/livewire.min.js(.*)",
+      "dest": "/public/livewire/livewire.min.js"
+    },
+    {
+      "src": "/livewire/(.*)",
+      "dest": "/api/index.php"
+    },
+    {
       "src": "/images/(.*)",
       "dest": "/public/images/$1"
     },
@@ -26,10 +38,6 @@
     {
       "src": "/(.*)\\.(css|js|jpg|jpeg|png|svg|ico|woff|woff2|ttf)",
       "dest": "/public/$1.$2"
-    },
-    {
-      "src": "/livewire/(.*)",
-      "dest": "/api/index.php"
     },
     {
       "src": "/(.*)",
